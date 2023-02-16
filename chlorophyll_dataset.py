@@ -1,36 +1,45 @@
+import os
 import netCDF4 as nc
 import torch as th
 from torchvision.transforms import functional as F
+import numpy as np
 
-def ChlorophyllDataSet(Dataset):
+
+class ChlorophyllDataset(th.utils.data.Dataset):
     def __init__(self, low_res_path, high_res_path):
-        self.low_res_path = nc.Dataset(low_res_path)
-        self.high_res_path = nc.Dataset(high_res_path)
+        self.low_res_path = low_res_path
+        self.high_res_path = high_res_path
+        self.low_res_files = sorted(os.listdir(low_res_path))
+        self.high_res_files = sorted(os.listdir(high_res_path))
 
-    def __getitem__(self, index):
-        # Get the data
-        lat_terra = self.low_res_path.variables['lat'][:]
-        lon_terra = self.low_res_path.variables['lon'][:]
-        afai_terra = self.low_res_path.variables['afai'][:]
-
-        # Get the data
-        lat_noaa = self.high_res_path.variables['lat'][:]
-        lon_noaa = self.high_res_path.variables['lon'][:]
-        afai_noaa = self.high_res_path.variables['afai'][:]
-
-        # create a meshgrid
-        lon_terra, lat_terra = np.meshgrid(lon_terra, lat_terra)
-        lon_noaa, lat_noaa = np.meshgrid(lon_noaa, lat_noaa)
-
-        afai_noaa = th.from_numpy(afai_noaa)
-        afai_terra = th.from_numpy(afai_terra)
-
-        _, afai_noaa_lat, afai_noaa_lon = afai_noaa.shape
-
-        afai_terra = F.resize(afai_terra, (afai_noaa_lat, afai_noaa_lon), interpolation=F.InterpolationMode.BICUBIC)
-        afai_terra = afai_terra.numpy()
-
-        return afai_noaa, afai_terra
-    
     def __len__(self):
-        return len(self.low_res_path)
+        return len(self.low_res_files)
+    
+    def __getitem__(self, idx):
+        low_res_file = nc.Dataset(self.low_res_path + self.low_res_files[idx])
+        high_res_file = nc.Dataset(self.high_res_path + self.high_res_files[idx])
+
+        low_res_lat = low_res_file['lat'][:]
+        low_res_lon = low_res_file['lon'][:]
+        high_res_lat = high_res_file['lat'][:]
+        high_res_lon = high_res_file['lon'][:]
+
+        low_res_lon, low_res_lat = np.meshgrid(low_res_lon, low_res_lat)
+        high_res_lon, high_res_lat = np.meshgrid(high_res_lon, high_res_lat)
+
+        low_res_data = low_res_file['afai'][:]
+        high_res_data = high_res_file['afai'][:]
+
+        low_res_data = np.nan_to_num(low_res_data, nan=0)
+        high_res_data = np.nan_to_num(high_res_data, nan=0)
+
+        low_res_data = th.from_numpy(low_res_data)
+        high_res_data = th.from_numpy(high_res_data)
+
+        _, low_res_lat, low_res_lon = low_res_data.shape
+
+        low_res_data = F.resize(low_res_data, (high_res_data.shape[1], high_res_data.shape[2]), interpolation=F.InterpolationMode.BICUBIC)
+        low_res_data = low_res_data.numpy()
+        high_res_data = high_res_data.numpy()
+
+        return low_res_data, high_res_data

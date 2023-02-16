@@ -3,7 +3,7 @@ import torch as th
 from torchvision.transforms import functional as F
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import interp2d
+from chlorophyll_dataset import ChlorophyllDataset
 from tqdm import tqdm
 from model import SRCNN
 
@@ -11,61 +11,73 @@ from model import SRCNN
 def normalize(afai):
     return (afai - np.min(afai)) / (np.max(afai) - np.min(afai))
 
-with nc.Dataset('archivos_prueba/1km_750m/23_01_25/MODIS_AQUA_AFAI_MODIS_AQUA_AFAI.nc') as terra_file:
-    # Get the data
-    lat_terra = terra_file.variables['lat'][:]
-    lon_terra = terra_file.variables['lon'][:]
-    afai_terra = terra_file.variables['afai'][:]
-
-# Plot the data
-plt.figure(figsize=(10, 10))
-plt.pcolormesh(lon_terra, lat_terra, afai_terra[0, :, :])
-plt.colorbar()
-plt.savefig('TERRA.png')
-plt.clf()
-
-# Get the data
-with nc.Dataset('archivos_prueba/1km_750m/23_01_25/VIIRS_NOAA20_AFAI_VIIRS_NOAA20_AFAI.nc') as noaa_file:
-    lat_noaa = noaa_file.variables['lat'][:]
-    lon_noaa = noaa_file.variables['lon'][:]
-    afai_noaa = noaa_file.variables['afai'][:]
-
-# Plot the data
-plt.figure(figsize=(10, 10))
-plt.pcolormesh(lon_noaa, lat_noaa, afai_noaa[0, :, :])
-plt.colorbar()
-plt.savefig('NOAA.png')
-plt.clf()
-
-# create a meshgrid
-lon_terra, lat_terra = np.meshgrid(lon_terra, lat_terra)
-lon_noaa, lat_noaa = np.meshgrid(lon_noaa, lat_noaa)
-
-afai_noaa = th.from_numpy(afai_noaa)
-afai_terra = th.from_numpy(afai_terra)
-
-_, afai_noaa_lat, afai_noaa_lon = afai_noaa.shape
-
-afai_terra = F.resize(afai_terra, (afai_noaa_lat, afai_noaa_lon), interpolation=F.InterpolationMode.BICUBIC)
-afai_terra = afai_terra.numpy()
-
-print(afai_noaa.shape)
-print(afai_terra.shape)
-
-# Plot the data
-plt.figure(figsize=(10, 10))
-plt.pcolormesh(lon_noaa, lat_noaa, afai_terra[0, :, :])
-plt.colorbar()
-plt.savefig('TERRA_RESIZE.png')
-plt.clf()
-
-low_res_dataset = th.utils.data.TensorDataset(afai_terra, afai_noaa)
+# Load the data
+batch_size = 1
+train_dataset = ChlorophyllDataset('archivos_prueba/1km_750m/1km/', 'archivos_prueba/1km_750m/750m/')
+train_loader = th.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
 # Create the model
 model = SRCNN()
 criterion = th.nn.MSELoss()
 optimizer = th.optim.Adam(model.parameters(), lr=0.001)
 
-# Train the model noticng that afai_noaa is the high resolution image and afai_terra is the low resolution image
-for epoch in range(100):
-    running_loss = 0.0
+# Train the model for 10 epochs
+epochs = 100
+for epoch in tqdm(range(epochs)):
+    for (low_res, high_res) in train_loader:
+        optimizer.zero_grad()
+        outputs = model(low_res)
+        loss = criterion(outputs, high_res)
+        loss.backward()
+        optimizer.step()
+    print(f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item():.4f}')
+
+# make a prediction with the model
+low_res_file = nc.Dataset('archivos_prueba/MODIS_TERRA_AFAI_MODIS_TERRA_AFAI.nc')
+high_res_file = nc.Dataset('archivos_prueba/VIIRS_NOAA20_AFAI_VIIRS_NOAA20_AFAI.nc')
+
+low_res_lat = low_res_file['lat'][:]
+low_res_lon = low_res_file['lon'][:]
+high_res_lat = high_res_file['lat'][:]
+high_res_lon = high_res_file['lon'][:]
+low_res_lon, low_res_lat = np.meshgrid(low_res_lon, low_res_lat)
+high_res_lon, high_res_lat = np.meshgrid(high_res_lon, high_res_lat)
+
+low_res_data = low_res_file['afai'][:]
+high_res_data = high_res_file['afai'][:]
+low_res_data = np.nan_to_num(low_res_data, nan=0)
+high_res_data = np.nan_to_num(high_res_data, nan=0)
+
+low_res_data = th.from_numpy(low_res_data)
+high_res_data = th.from_numpy(high_res_data)
+
+_, low_res_lat, low_res_lon = low_res_data.shape
+
+low_res_data = F.resize(low_res_data, (high_res_data.shape[1], high_res_data.shape[2]), interpolation=F.InterpolationMode.BICUBIC)
+low_res_data = low_res_data.numpy()
+high_res_data = high_res_data.numpy()
+
+prediction = model(th.from_numpy(low_res_data).unsqueeze(0))
+prediction = prediction.detach().numpy()
+
+# Plot the results
+plt.figure(figsize=(10, 10))
+#plt.subplot(1, 3, 1)
+plt.title('Low resolution')
+plt.pcolormesh(high_res_lon, high_res_lat, low_res_data[0, :, :])
+plt.colorbar()
+plt.savefig('low_res.png')
+plt.clf()
+#plt.subplot(1, 3, 2)
+plt.figure(figsize=(10, 10))
+plt.title('High resolution')
+plt.pcolormesh(high_res_lon, high_res_lat, high_res_data[0, :, :])
+plt.colorbar()
+plt.savefig('high_res.png')
+plt.clf()
+#plt.subplot(1, 3, 3)
+plt.figure(figsize=(10, 10))
+plt.title('Prediction')
+plt.pcolormesh(high_res_lon, high_res_lat, prediction[0, 0, :, :])
+plt.colorbar()
+plt.savefig('prediction.png')
