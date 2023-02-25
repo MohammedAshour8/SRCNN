@@ -1,8 +1,6 @@
 import netCDF4 as nc
 import torch as th
-from torchvision.transforms import functional as F
 import numpy as np
-import matplotlib.pyplot as plt
 from chlorophyll_dataset import ChlorophyllDataset
 from tqdm import tqdm
 from model import SRCNN
@@ -31,7 +29,7 @@ optimizer = th.optim.Adam(model.parameters(), lr=0.001)
 
 model.train()
 
-# Train the model for 10 epochs
+# Train the model
 epochs = 300
 for epoch in tqdm(range(epochs)):
     for (low_res, high_res) in train_loader:
@@ -40,6 +38,7 @@ for epoch in tqdm(range(epochs)):
         loss = criterion(outputs, high_res)
         loss.backward()
         optimizer.step()
+    #print(f'Epoch: {epoch + 1}/{epochs}, Loss: {loss.item():.4f}')
 
 # test the model
 model.eval()
