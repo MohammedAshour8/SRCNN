@@ -1,0 +1,3 @@
+muy sensible al ruido
+pocas imágenes
+lentitud de entrenamiento

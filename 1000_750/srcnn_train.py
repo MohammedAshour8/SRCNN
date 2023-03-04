@@ -4,6 +4,7 @@ import numpy as np
 from chlorophyll_dataset import ChlorophyllDataset
 from tqdm import tqdm
 from model import SRCNN
+import matplotlib.pyplot as plt
 
 # normalize afai values between 0 and 1
 def normalize(afai):
@@ -29,8 +30,9 @@ optimizer = th.optim.Adam(model.parameters(), lr=0.001)
 
 model.train()
 
-# Train the model
-epochs = 300
+# Train the model and store the loss to plot it later
+epochs = 500
+array_loss = []
 for epoch in tqdm(range(epochs)):
     for (low_res, high_res) in train_loader:
         optimizer.zero_grad()
@@ -39,6 +41,15 @@ for epoch in tqdm(range(epochs)):
         loss.backward()
         optimizer.step()
     #print(f'Epoch: {epoch + 1}/{epochs}, Loss: {loss.item():.4f}')
+    # save the loss to plot it later
+    array_loss.append(loss.item())
+
+# plot the loss
+plt.plot(array_loss)
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.savefig('loss_500.png')
+plt.clf()
 
 # test the model
 model.eval()
@@ -50,4 +61,4 @@ with th.no_grad():
     print(f'Test Loss: {test_loss / len(test_loader):.4f}')
 
 # save the model
-th.save(model.state_dict(), 'SRCNN_1000_750.pth')
+th.save(model.state_dict(), 'SRCNN_1000_750_500.pth')
