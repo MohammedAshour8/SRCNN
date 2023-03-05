@@ -44,7 +44,7 @@ for epoch in tqdm(range(epochs)):
 plt.plot(array_loss)
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
-plt.savefig('loss_500.png')
+plt.savefig('loss_1000.png')
 plt.clf()
 
 # test the model
@@ -57,4 +57,4 @@ with th.no_grad():
     print(f'Test Loss: {test_loss / len(test_loader):.4f}')
 
 # save the model
-th.save(model.state_dict(), 'SRCNN_750_300_500.pth')
+th.save(model.state_dict(), 'SRCNN_750_300_1000.pth')
