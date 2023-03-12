@@ -31,7 +31,7 @@ optimizer = th.optim.Adam(model.parameters(), lr=0.001)
 model.train()
 
 # Train the model and store the loss to plot it later
-epochs = 500
+epochs = 1000
 array_loss = []
 for epoch in tqdm(range(epochs)):
     for (low_res, high_res) in train_loader:
@@ -48,7 +48,7 @@ for epoch in tqdm(range(epochs)):
 plt.plot(array_loss)
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
-plt.savefig('loss_500.png')
+plt.savefig('loss_1000_better.png')
 plt.clf()
 
 # test the model
@@ -61,4 +61,4 @@ with th.no_grad():
     print(f'Test Loss: {test_loss / len(test_loader):.4f}')
 
 # save the model
-th.save(model.state_dict(), 'SRCNN_1000_750_500.pth')
+th.save(model.state_dict(), 'SRCNN_1000_750_1000_better.pth')

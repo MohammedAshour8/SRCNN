@@ -22,8 +22,6 @@ train_dataset, test_dataset = th.utils.data.random_split(train_dataset, [train_s
 train_loader = th.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = th.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
-# train_loader = th.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-
 # Create the model
 model = SRCNN(in_channels=2)
 criterion = th.nn.MSELoss()
@@ -32,7 +30,8 @@ optimizer = th.optim.Adam(model.parameters(), lr=0.001)
 model.train()
 
 # Train the model for 10 epochs
-epochs = 600
+epochs = 500
+array_loss = []
 for epoch in tqdm(range(epochs)):
     for (low_res, high_res) in train_loader:
         optimizer.zero_grad()
@@ -40,6 +39,14 @@ for epoch in tqdm(range(epochs)):
         loss = criterion(outputs, high_res)
         loss.backward()
         optimizer.step()
+    array_loss.append(loss.item())
+
+# plot the loss
+plt.plot(array_loss)
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.savefig('loss_1000.png')
+plt.clf()
 
 # test the model
 model.eval()
@@ -51,4 +58,4 @@ with th.no_grad():
     print(f'Test Loss: {test_loss / len(test_loader):.4f}')
 
 # save the model
-th.save(model.state_dict(), 'SRCNN_1000_300.pth')
+th.save(model.state_dict(), 'SRCNN_1000_300_500.pth')

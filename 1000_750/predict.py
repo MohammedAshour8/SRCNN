@@ -10,12 +10,12 @@ from model import SRCNN
 
 # load the model
 model = SRCNN(in_channels=2)
-model.load_state_dict(th.load('SRCNN_1000_750_1000.pth'))
+model.load_state_dict(th.load('SRCNN_1000_750_1000_better.pth'))
 model.eval()
 
 # make a prediction with the model
-low_res_file = nc.Dataset('../archivos_prueba/MODIS_TERRA_AFAI_MODIS_TERRA_AFAI.nc')
-high_res_file = nc.Dataset('../archivos_prueba/VIIRS_NOAA20_AFAI_VIIRS_NOAA20_AFAI.nc')
+low_res_file = nc.Dataset('../archivos_prueba/MODIS_AQUA_AFAI_MODIS_AQUA_AFAI.nc')
+high_res_file = nc.Dataset('../archivos_prueba/1km_750m/750m/NOAA_027.nc')
 
 low_res_lat = low_res_file['lat'][:]
 low_res_lon = low_res_file['lon'][:]
@@ -42,10 +42,6 @@ high_res_data = high_res_data.numpy()
 prediction = model(th.from_numpy(low_res_data_resized).unsqueeze(0))
 prediction = prediction.detach().numpy()
 
-print(low_res_data.shape)
-print(prediction.shape)
-print(high_res_data.shape)
-
 # Plot the results
 plt.figure(figsize=(10, 10))
 #plt.subplot(1, 3, 1)
@@ -66,4 +62,4 @@ plt.figure(figsize=(10, 10))
 plt.title('Prediction')
 plt.pcolormesh(prediction[0, 0, :, :])
 plt.colorbar()
-plt.savefig('prediction_1000.png')
+plt.savefig('prediction_1000_better.png')
