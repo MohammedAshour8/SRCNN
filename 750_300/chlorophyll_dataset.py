@@ -39,8 +39,8 @@ class ChlorophyllDataset(th.utils.data.Dataset):
         low_res_data[low_res_data < -100] = 0
         high_res_data[high_res_data < -100] = 0
 
-        low_res_data = normalize(low_res_data)
-        high_res_data = normalize(high_res_data)
+        """low_res_data = normalize(low_res_data)
+        high_res_data = normalize(high_res_data)"""
 
         low_res_data = th.from_numpy(low_res_data)
         high_res_data = th.from_numpy(high_res_data)

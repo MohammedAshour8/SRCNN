@@ -17,8 +17,8 @@ model.load_state_dict(th.load('SRCNN_750_300_500.pth'))
 model.eval()
 
 # make a prediction with the model
-low_res_file = nc.Dataset('../archivos_prueba/750m_300m/VIIRS_SNPP_AFAI_VIIRS_SNPP_AFAI.nc')
-high_res_file = nc.Dataset('../archivos_prueba/750m_300m/300m/MCI_033.nc')
+low_res_file = nc.Dataset('../archivos_prueba/750m_300m/750m/NOAA_003.nc')
+high_res_file = nc.Dataset('../archivos_prueba/750m_300m/300m/MCI_003.nc')
 
 low_res_lat = low_res_file['lat'][:]
 low_res_lon = low_res_file['lon'][:]
@@ -41,8 +41,8 @@ high_res_data[high_res_data < -100] = 0
 low_res_data = np.ma.masked_invalid(low_res_data)
 high_res_data = np.ma.masked_invalid(high_res_data)
 
-low_res_data = normalize(low_res_data)
-high_res_data = normalize(high_res_data)
+"""low_res_data = normalize(low_res_data)
+high_res_data = normalize(high_res_data)"""
 
 low_res_data = th.from_numpy(low_res_data)
 high_res_data = th.from_numpy(high_res_data)

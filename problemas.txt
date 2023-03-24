@@ -1,3 +1,4 @@
 muy sensible al ruido
-pocas imágenes
-lentitud de entrenamiento
+no se entrenó la red con ruido ni valores nulos
+qué hacer ahora?
+memoria de TFG?
