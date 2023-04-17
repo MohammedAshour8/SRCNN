@@ -24,7 +24,7 @@ test_loader = th.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuf
 # Create the model
 model = SRCNN(in_channels=2)
 criterion = th.nn.MSELoss()
-optimizer = th.optim.Adam(model.parameters(), lr=0.001)
+optimizer = th.optim.Adam(model.parameters(), lr=0.0001)
 
 model.train()
 

@@ -17,8 +17,8 @@ model.load_state_dict(th.load('SRCNN_1000_750_1000_better.pth'))
 model.eval()
 
 # make a prediction with the model
-low_res_file = nc.Dataset('../archivos_prueba/1km_750m/MODIS_AQUA_AFAI_MODIS_AQUA_AFAI.nc')
-high_res_file = nc.Dataset('../archivos_prueba/1km_750m/VIIRS_SNPP_AFAI_VIIRS_SNPP_AFAI.nc')
+low_res_file = nc.Dataset('../archivos_prueba/1km_750m/1km/AQUA_002.nc')
+high_res_file = nc.Dataset('../archivos_prueba/1km_750m/750m/NOAA_002.nc')
 
 low_res_lat = low_res_file['lat'][:]
 low_res_lon = low_res_file['lon'][:]
