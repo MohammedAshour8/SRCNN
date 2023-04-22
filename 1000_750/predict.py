@@ -13,12 +13,12 @@ def normalize(afai):
 
 # load the model
 model = SRCNN(in_channels=2)
-model.load_state_dict(th.load('SRCNN_1000_750_1000_better.pth'))
+model.load_state_dict(th.load('model.pth'))
 model.eval()
 
 # make a prediction with the model
-low_res_file = nc.Dataset('../archivos_prueba/1km_750m/1km/AQUA_002.nc')
-high_res_file = nc.Dataset('../archivos_prueba/1km_750m/750m/NOAA_002.nc')
+low_res_file = nc.Dataset('../archivos_prueba/1km_750m/AQUA.nc')
+high_res_file = nc.Dataset('../archivos_prueba/1km_750m/NOAA.nc')
 
 low_res_lat = low_res_file['lat'][:]
 low_res_lon = low_res_file['lon'][:]

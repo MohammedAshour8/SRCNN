@@ -1,4 +1,0 @@
-muy sensible al ruido
-no se entrenó la red con ruido ni valores nulos
-qué hacer ahora?
-memoria de TFG?

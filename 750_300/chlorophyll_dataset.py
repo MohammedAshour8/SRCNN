@@ -34,20 +34,13 @@ class ChlorophyllDataset(th.utils.data.Dataset):
 
         low_res_data = np.nan_to_num(low_res_data, nan=0)
         high_res_data = np.nan_to_num(high_res_data, nan=0)
-        
-        # interpolate all values smaller than -100
-        low_res_data[low_res_data < -100] = 0
-        high_res_data[high_res_data < -100] = 0
-
-        """low_res_data = normalize(low_res_data)
-        high_res_data = normalize(high_res_data)"""
 
         low_res_data = th.from_numpy(low_res_data)
         high_res_data = th.from_numpy(high_res_data)
 
         _, low_res_lat, low_res_lon = low_res_data.shape
 
-        low_res_data = F.resize(low_res_data, (high_res_data.shape[1], high_res_data.shape[2]), interpolation=F.InterpolationMode.BICUBIC)
+        low_res_data = F.resize(low_res_data, (high_res_data.shape[0], high_res_data.shape[1]), interpolation=F.InterpolationMode.BICUBIC)
         low_res_data = low_res_data.numpy()
         high_res_data = high_res_data.numpy()
 

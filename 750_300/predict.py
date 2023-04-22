@@ -13,7 +13,7 @@ def normalize(afai):
 
 # load the model
 model = SRCNN(in_channels=2)
-model.load_state_dict(th.load('model_1000_better_skip_aligned_7.pth', map_location=th.device('cpu')))
+model.load_state_dict(th.load('model.pth', map_location=th.device('cpu')))
 model.eval()
 
 # make a prediction with the model
@@ -41,9 +41,6 @@ high_res_data[high_res_data < -100] = 0
 low_res_data = np.ma.masked_invalid(low_res_data)
 high_res_data = np.ma.masked_invalid(high_res_data)
 
-"""low_res_data = normalize(low_res_data)
-high_res_data = normalize(high_res_data)"""
-
 low_res_data = th.from_numpy(low_res_data)
 high_res_data = th.from_numpy(high_res_data)
 
@@ -58,24 +55,29 @@ prediction = prediction.detach().numpy()
 
 prediction = prediction * 10
 
-# Plot the results
+low_res_data = low_res_data.numpy()
+
+# find the minimum and maximum values in the data
+min_val = np.min([np.min(low_res_data), np.min(high_res_data), np.min(prediction)])
+max_val = np.max([np.max(low_res_data), np.max(high_res_data), np.max(prediction)])
+
+# plot the three images with the same color palette and color range
 plt.figure(figsize=(10, 10))
-#plt.subplot(1, 3, 1)
 plt.title('Low resolution')
-plt.pcolormesh(low_res_data[0, :, :])
+plt.pcolormesh(low_res_data[0, :, :], vmin=min_val, vmax=max_val)
 plt.colorbar()
 plt.savefig('low_res.png')
 plt.clf()
-#plt.subplot(1, 3, 2)
+
 plt.figure(figsize=(10, 10))
 plt.title('High resolution')
-plt.pcolormesh(high_res_data[0, :, :])
+plt.pcolormesh(high_res_data[0, :, :], vmin=min_val, vmax=max_val)
 plt.colorbar()
 plt.savefig('high_res.png')
 plt.clf()
-#plt.subplot(1, 3, 3)
+
 plt.figure(figsize=(10, 10))
 plt.title('Prediction')
-plt.pcolormesh(prediction[0, 0, :, :])
+plt.pcolormesh(prediction[0, 0, :, :], vmin=min_val, vmax=max_val)
 plt.colorbar()
 plt.savefig('prediction.png')

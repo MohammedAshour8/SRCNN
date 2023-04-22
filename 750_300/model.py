@@ -65,4 +65,3 @@ class ResidualBlock(nn.Module):
         out = self.conv2_bn(out)
         out += x
         return out
-
