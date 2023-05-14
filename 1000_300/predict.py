@@ -3,8 +3,6 @@ import torch as th
 from torchvision.transforms import functional as F
 import numpy as np
 import matplotlib.pyplot as plt
-from chlorophyll_dataset import ChlorophyllDataset
-from tqdm import tqdm
 from model import SRCNN
 
 # normalize afai values between 0 and 1
@@ -12,12 +10,12 @@ def normalize(afai):
     return (afai - np.min(afai)) / (np.max(afai) - np.min(afai))
 
 # load the model
-"""model = SRCNN(in_channels=2)
-model.load_state_dict(th.load('SRCNN_1000_300_500.pth'))"""
+model = SRCNN(in_channels=2)
+model.load_state_dict(th.load('model_v10.pth', map_location=th.device('cpu')))
 
 # make a prediction with the model
-low_res_file = nc.Dataset('../archivos_prueba/1km_300m/1km/AQUA_007.nc')
-high_res_file = nc.Dataset('../archivos_prueba/1km_300m/300m/MCI_007.nc')
+low_res_file = nc.Dataset('../archivos_prueba/1km_300m/1km_malos/AQUA_030.nc')
+high_res_file = nc.Dataset('../archivos_prueba/1km_300m/300m_malos/MCI_030.nc')
 
 low_res_lat = low_res_file['lat'][:]
 low_res_lon = low_res_file['lon'][:]
@@ -40,9 +38,6 @@ high_res_data[high_res_data < -100] = 0
 low_res_data = np.ma.masked_invalid(low_res_data)
 high_res_data = np.ma.masked_invalid(high_res_data)
 
-low_res_data = normalize(low_res_data)
-high_res_data = normalize(high_res_data)
-
 low_res_data = th.from_numpy(low_res_data)
 high_res_data = th.from_numpy(high_res_data)
 
@@ -52,8 +47,10 @@ low_res_data_resized = F.resize(low_res_data, (int(low_res_lon * 1000/300), int(
 low_res_data_resized = low_res_data_resized.numpy()
 high_res_data = high_res_data.numpy()
 
-"""prediction = model(th.from_numpy(low_res_data_resized).unsqueeze(0))
-prediction = prediction.detach().numpy()"""
+prediction = model(th.from_numpy(low_res_data_resized).unsqueeze(0))
+prediction = prediction.detach().numpy()
+
+# normalize the prediction to be the most similar to the low resolution data range
 
 # Plot the results
 plt.figure(figsize=(10, 10))
@@ -71,8 +68,8 @@ plt.colorbar()
 plt.savefig('high_res.png')
 plt.clf()
 #plt.subplot(1, 3, 3)
-"""plt.figure(figsize=(10, 10))
+plt.figure(figsize=(10, 10))
 plt.title('Prediction')
 plt.pcolormesh(prediction[0, 0, :, :])
 plt.colorbar()
-plt.savefig('prediction_500.png')"""
+plt.savefig('prediction.png')

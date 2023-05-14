@@ -1,4 +1,3 @@
-import os
 import numpy as np
 import scipy.ndimage
 import scipy.signal
@@ -7,8 +6,8 @@ from torchvision.transforms import functional as F
 import netCDF4 as nc
 import matplotlib.pyplot as plt
 
-image1 = nc.Dataset('../archivos_prueba/1km_300m/1km/AQUA_029.nc').variables['afai'][:]
-image2 = nc.Dataset('../archivos_prueba/1km_300m/300m/MCI_029.nc').variables['MCI'][:]
+image1 = nc.Dataset('../archivos_prueba/1km_300m/1km/AQUA_037.nc').variables['afai'][:]
+image2 = nc.Dataset('../archivos_prueba/1km_300m/300m/MCI_037.nc').variables['MCI'][:]
 
 # substitute nan values with 0
 image1 = np.nan_to_num(image1, nan=0)
