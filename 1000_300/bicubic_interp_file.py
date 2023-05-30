@@ -29,6 +29,7 @@ class Interpolate():
         _, low_res_lon, low_res_lat = low_res_data.shape
 
         low_res_data_resized = F.resize(low_res_data, (int(low_res_lon * 1000/300), int(low_res_lat * 1000/300)), interpolation=F.InterpolationMode.BICUBIC)
+        low_res_data = low_res_data.numpy()
         low_res_data_resized = low_res_data_resized.numpy()
         high_res_data = high_res_data.numpy()
 

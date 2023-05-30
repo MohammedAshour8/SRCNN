@@ -44,8 +44,8 @@ class ImageAligner:
                 low_res_image_data = np.mean(low_res_image_data, axis=0)
                 high_res_image_data = np.mean(high_res_image_data, axis=0)
 
-                low_res_image_data = scipy.ndimage.gaussian_filter(low_res_image_data, sigma=1)
-                high_res_image_data = scipy.ndimage.gaussian_filter(high_res_image_data, sigma=1)
+                """low_res_image_data = scipy.ndimage.gaussian_filter(low_res_image_data, sigma=1)
+                high_res_image_data = scipy.ndimage.gaussian_filter(high_res_image_data, sigma=1)"""
 
                 corr = scipy.signal.correlate2d(low_res_image_data, high_res_image_data, mode='same', boundary='symm')
 

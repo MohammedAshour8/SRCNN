@@ -6,6 +6,7 @@ import torch as th
 from torchvision.transforms import functional as F
 import netCDF4 as nc
 from bicubic_interp_file import Interpolate
+from tqdm import tqdm
 
 class ImageAligner:
     def __init__(self, low_res_path, high_res_path):
@@ -18,7 +19,7 @@ class ImageAligner:
 
     def align_images(self):
         # Find all netcdf files in the folder
-        for low_res_file_name, high_res_file_name in zip(self.low_res_files, self.high_res_files):
+        for low_res_file_name, high_res_file_name in tqdm(zip(self.low_res_files, self.high_res_files)):
             if low_res_file_name.endswith('.nc') and high_res_file_name.endswith('.nc'):
                 # Load the two netcdf format images into your program.
                 low_res_path = os.path.join(self.low_res_path, low_res_file_name)
@@ -32,8 +33,8 @@ class ImageAligner:
                 low_res_image_data = np.mean(low_res_image_data, axis=0)
                 high_res_image_data = np.mean(high_res_image_data, axis=0)
 
-                """low_res_image_data = scipy.ndimage.gaussian_filter(low_res_image_data, sigma=1)
-                high_res_image_data = scipy.ndimage.gaussian_filter(high_res_image_data, sigma=1)"""
+                low_res_image_data = scipy.ndimage.gaussian_filter(low_res_image_data, sigma=1)
+                high_res_image_data = scipy.ndimage.gaussian_filter(high_res_image_data, sigma=1)
 
                 corr = scipy.signal.correlate2d(low_res_image_data, high_res_image_data, mode='same', boundary='symm')
 
@@ -50,7 +51,7 @@ class ImageAligner:
                     self.lon_var = high_res_image.variables['lon']
 
                 # Create the aligned MCI variable with the lat and lon dimensions
-                aligned_path = os.path.join(self.high_res_path, 'aligned_nothing', high_res_file_name)
+                aligned_path = os.path.join(self.high_res_path, 'aligned_gaussian', high_res_file_name)
                 new_dataset = nc.Dataset(aligned_path, 'w')
                 new_dataset.createDimension('lat', high_res_image_data_aligned.shape[0])
                 new_dataset.createDimension('lon', high_res_image_data_aligned.shape[1])
