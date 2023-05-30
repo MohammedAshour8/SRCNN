@@ -17,7 +17,7 @@ model.load_state_dict(th.load('model.pth'))
 model.eval()
 
 # make a prediction with the model
-low_res_file = nc.Dataset('../archivos_prueba/1km_750m/AQUA.nc')
+low_res_file = nc.Dataset('../archivos_prueba/MODIS_AQUA_AFAI_MODIS_AQUA_AFAI.nc')
 high_res_file = nc.Dataset('../archivos_prueba/1km_750m/NOAA.nc')
 
 low_res_lat = low_res_file['lat'][:]

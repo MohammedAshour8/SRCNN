@@ -57,27 +57,23 @@ prediction = prediction * 10
 
 low_res_data = low_res_data.numpy()
 
-# find the minimum and maximum values in the data
-min_val = np.min([np.min(low_res_data), np.min(high_res_data), np.min(prediction)])
-max_val = np.max([np.max(low_res_data), np.max(high_res_data), np.max(prediction)])
-
 # plot the three images with the same color palette and color range
 plt.figure(figsize=(10, 10))
 plt.title('Low resolution')
-plt.pcolormesh(low_res_data[0, :, :], vmin=min_val, vmax=max_val)
+plt.pcolormesh(low_res_data[0, :, :])
 plt.colorbar()
 plt.savefig('low_res.png')
 plt.clf()
 
 plt.figure(figsize=(10, 10))
 plt.title('High resolution')
-plt.pcolormesh(high_res_data[0, :, :], vmin=min_val, vmax=max_val)
+plt.pcolormesh(high_res_data[0, :, :])
 plt.colorbar()
 plt.savefig('high_res.png')
 plt.clf()
 
 plt.figure(figsize=(10, 10))
 plt.title('Prediction')
-plt.pcolormesh(prediction[0, 0, :, :], vmin=min_val, vmax=max_val)
+plt.pcolormesh(prediction[0, 0, :, :])
 plt.colorbar()
 plt.savefig('prediction.png')

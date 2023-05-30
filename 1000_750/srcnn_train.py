@@ -5,6 +5,7 @@ from chlorophyll_dataset import ChlorophyllDataset
 from tqdm import tqdm
 from model import SRCNN
 import matplotlib.pyplot as plt
+from skimage.metrics import peak_signal_noise_ratio
 
 # normalize afai values between 0 and 1
 def normalize(afai):
@@ -23,8 +24,11 @@ test_loader = th.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuf
 
 # train_loader = th.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-# Create the model
 model = SRCNN(in_channels=2)
+model.load_state_dict(th.load('model.pth', map_location=th.device('cpu')))
+
+# Create the model
+"""model = SRCNN(in_channels=2)
 criterion = th.nn.MSELoss()
 optimizer = th.optim.Adam(model.parameters(), lr=0.001)
 
@@ -49,16 +53,31 @@ plt.plot(array_loss)
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.savefig('loss_1000_better.png')
-plt.clf()
+plt.clf()"""
 
 # test the model
 model.eval()
-test_loss = 0
+psnr_scores = []
 with th.no_grad():
     for (low_res, high_res) in test_loader:
+        low_res, high_res = low_res, high_res
         outputs = model(low_res)
-        test_loss += criterion(outputs, high_res)
-    print(f'Test Loss: {test_loss / len(test_loader):.4f}')
+        # Remove the extra channel dimension from outputs
+        outputs = outputs[:, 0, :, :]  # Select the first channel
+        high_res = high_res[:, 0, :, :]  # Select the first channel
+        # Squeeze the tensors to remove the batch_size dimension
+        outputs = outputs.squeeze(0)
+        high_res = high_res.squeeze(0)
+        print(outputs.shape)
+        print(high_res.shape)
+        # Calculate PSNR and SSIM
+        psnr = peak_signal_noise_ratio(high_res.cpu().numpy(), outputs.cpu().numpy(), data_range=1.0)
+        psnr_scores.append(psnr)
+        # Free up GPU memory
+        del low_res, high_res, outputs
+        th.cuda.empty_cache()
+
+print(f'Average PSNR: {np.mean(psnr_scores):.4f}')
 
 # save the model
-th.save(model.state_dict(), 'SRCNN_1000_750_1000_better.pth')
+# th.save(model.state_dict(), 'SRCNN_1000_750_1000_better.pth)')
