@@ -1,4 +1,3 @@
-import netCDF4 as nc
 import torch as th
 import numpy as np
 from chlorophyll_dataset import ChlorophyllDataset
@@ -7,10 +6,11 @@ from tqdm import tqdm
 from model import SRCNN
 import matplotlib.pyplot as plt
 import torch.cuda.amp as amp
+from test import TestModel
 
 aligner = ImageAligner('../archivos_prueba/1km_300m/1km/', '../archivos_prueba/1km_300m/300m/')
 aligner.align_images()
-"""
+
 # Load the data
 batch_size = 1
 train_dataset = ChlorophyllDataset('../archivos_prueba/1km_300m/1km/', '../archivos_prueba/1km_300m/300m/aligned/')
@@ -21,6 +21,10 @@ train_dataset, test_dataset = th.utils.data.random_split(train_dataset, [train_s
 
 train_loader = th.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = th.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+
+"""device = th.device('cuda' if th.cuda.is_available() else 'cpu')
+model = SRCNN(in_channels=2).to(device)
+model.load_state_dict(th.load('model_v10.pth', map_location=th.device('cpu')))"""
 
 # Create the model
 device = th.device('cuda' if th.cuda.is_available() else 'cpu')
@@ -49,7 +53,6 @@ for epoch in tqdm(range(epochs)):
         th.cuda.empty_cache()
     array_loss.append(loss.item())  # move this line outside the with block
 
-
 # plot the final loss
 plt.plot(array_loss)
 plt.xlabel('Epochs')
@@ -57,23 +60,11 @@ plt.ylabel('Loss')
 plt.savefig('loss.png')
 plt.clf()
 
+
 # test the model
 model.eval()
-test_loss = 0
-with th.no_grad():
-    for (low_res, high_res) in test_loader:
-        low_res, high_res = low_res.to(device), high_res.to(device)
-        with amp.autocast():
-            outputs = model(low_res)
-            test_loss += criterion(outputs, high_res)
-        # Free up GPU memory
-        del low_res, high_res, outputs
-        th.cuda.empty_cache()
-    print(f'Test Loss: {test_loss / len(test_loader):.4f}')
-    # Free up GPU memory
-    del test_loss
-    th.cuda.empty_cache()
 
-# save the model
+print(f'Average PSNR: {np.mean(TestModel(model, test_loader, device).test()):.4f}')
+
+# Save the model
 th.save(model.state_dict(), 'model.pth')
-"""

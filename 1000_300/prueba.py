@@ -1,48 +1,30 @@
-import numpy as np
-import scipy.ndimage
-import scipy.signal
-import torch as th
-from torchvision.transforms import functional as F
 import netCDF4 as nc
+import torch as th
 import matplotlib.pyplot as plt
+from model import SRCNN
+from bicubic_interp_file import Interpolate
 
-image1 = nc.Dataset('../archivos_prueba/1km_300m/1km/AQUA_037.nc').variables['afai'][:]
-image2 = nc.Dataset('../archivos_prueba/1km_300m/300m/MCI_037.nc').variables['MCI'][:]
+# load the model
+model = SRCNN(in_channels=2)
+model.load_state_dict(th.load('model_v10.pth', map_location=th.device('cpu')))
 
-# substitute nan values with 0
-image1 = np.nan_to_num(image1, nan=0)
-image2 = np.nan_to_num(image2, nan=0)
+# make a prediction with the model
+low_res_file = nc.Dataset('../archivos_prueba/1km_300m/1km_malos/AQUA_030.nc')
+high_res_file = nc.Dataset('../archivos_prueba/1km_300m/300m_malos/MCI_030.nc')
 
-image1 = th.from_numpy(image1)
+low_res_data, low_res_data_resized, high_res_data = Interpolate(low_res_file, high_res_file, 'afai', 'MCI').interpolate()
 
-_, low_res_lon, low_res_lat = image1.shape
+prediction = model(th.from_numpy(low_res_data_resized).unsqueeze(0))
+prediction = prediction.detach().numpy()
 
-image1 = F.resize(image1, (int(low_res_lon * 1000/300), int(low_res_lat * 1000/300)), interpolation=F.InterpolationMode.BICUBIC)
-
-image1 = image1.numpy()
-
-# Convert the images to grayscale if they are in color format.
-image1 = np.mean(image1, axis=0)
-image2 = np.mean(image2, axis=0)
-
-image1 = scipy.ndimage.gaussian_filter(image1, sigma=1)
-image2 = scipy.ndimage.gaussian_filter(image2, sigma=1)
-
-corr = scipy.signal.correlate2d(image1, image2, mode='same', boundary='symm')
-
-shift = np.unravel_index(np.argmax(corr), corr.shape)
-dx, dy = np.array(shift) - np.array(image1.shape)//2
-
-image2_aligned = scipy.ndimage.shift(image2, shift=(dx, dy))
-
-# Visualize the aligned images.
-fig, ax = plt.subplots(2, 2, figsize=(8, 8))
-ax[0, 0].imshow(image1)
-ax[0, 0].set_title('Image 1')
-ax[0, 1].imshow(image2)
-ax[0, 1].set_title('Image 2')
-ax[1, 0].imshow(image2_aligned)
-ax[1, 0].set_title('Image 2 Aligned')
-ax[1, 1].imshow(corr)
-ax[1, 1].set_title('Cross-correlation')
+# Plot the low resolution, high resolution, prediction and resized low resolution
+plt.figure(figsize=(10, 10))
+plt.subplot(2, 1, 1)
+plt.title('Imagen de baja resolución')
+plt.pcolormesh(low_res_data[0, :, :])
+#plt.colorbar()
+plt.subplot(2, 1, 2)
+plt.title('Imagen redimensionada')
+plt.pcolormesh(prediction[0, 0, :, :])
+#plt.colorbar()
 plt.show()

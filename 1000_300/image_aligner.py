@@ -5,6 +5,7 @@ import scipy.signal
 import torch as th
 from torchvision.transforms import functional as F
 import netCDF4 as nc
+from bicubic_interp_file import Interpolate
 
 class ImageAligner:
     def __init__(self, low_res_path, high_res_path):
@@ -25,20 +26,7 @@ class ImageAligner:
                 low_res_image = nc.Dataset(low_res_path)
                 high_res_image = nc.Dataset(high_res_path)
 
-                low_res_image_data = low_res_image.variables['afai'][:]
-                high_res_image_data = high_res_image.variables['MCI'][:]
-
-                # substitute nan values with 0
-                low_res_image_data = np.nan_to_num(low_res_image_data, nan=0)
-                high_res_image_data = np.nan_to_num(high_res_image_data, nan=0)
-
-                low_res_image_data = th.from_numpy(low_res_image_data)
-
-                _, low_res_lon, low_res_lat = low_res_image_data.shape
-
-                low_res_image_data = F.resize(low_res_image_data, (int(low_res_lon * 750 / 300), int(low_res_lat * 750 / 300)), interpolation=F.InterpolationMode.BICUBIC)
-
-                low_res_image_data = low_res_image_data.numpy()
+                low_res_image_data, _, high_res_image_data = Interpolate(low_res_image, high_res_image, 'afai', 'MCI').interpolate()
 
                 # Convert the images to grayscale if they are in color format.
                 low_res_image_data = np.mean(low_res_image_data, axis=0)

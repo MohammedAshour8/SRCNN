@@ -1,8 +1,7 @@
 import os
-import netCDF4 as nc
 import torch as th
-from torchvision.transforms import functional as F
 import numpy as np
+from bicubic_interp_dir import Interpolate
 
 def normalize(afai):
     return (afai - np.min(afai)) / (np.max(afai) - np.min(afai))
@@ -18,33 +17,6 @@ class ChlorophyllDataset(th.utils.data.Dataset):
         return len(self.low_res_files)
     
     def __getitem__(self, idx):
-        low_res_file = nc.Dataset(self.low_res_path + self.low_res_files[idx])
-        high_res_file = nc.Dataset(self.high_res_path + self.high_res_files[idx])
-
-        low_res_lat = low_res_file['lat'][:]
-        low_res_lon = low_res_file['lon'][:]
-        high_res_lat = high_res_file['lat'][:]
-        high_res_lon = high_res_file['lon'][:]
-
-        low_res_lon, low_res_lat = np.meshgrid(low_res_lon, low_res_lat)
-        high_res_lon, high_res_lat = np.meshgrid(high_res_lon, high_res_lat)
-
-        low_res_data = low_res_file['afai'][:]
-        high_res_data = high_res_file['MCI'][:]
-
-        low_res_data = np.nan_to_num(low_res_data, nan=0)
-        high_res_data = np.nan_to_num(high_res_data, nan=0)
-
-        low_res_data = np.where(low_res_data < -1000, 0, low_res_data)
-        high_res_data = np.where(high_res_data < -1000, 0, high_res_data)
-
-        low_res_data = th.from_numpy(low_res_data)
-        high_res_data = th.from_numpy(high_res_data)
-
-        _, low_res_lat, low_res_lon = low_res_data.shape
-
-        low_res_data = F.resize(low_res_data, (high_res_data.shape[1], high_res_data.shape[2]), interpolation=F.InterpolationMode.BICUBIC)
-        low_res_data = low_res_data.numpy()
-        high_res_data = high_res_data.numpy()
+        low_res_data, high_res_data = Interpolate(self.low_res_path, self.high_res_path).__getitem__(idx)
 
         return low_res_data, high_res_data
