@@ -17,8 +17,8 @@ model.load_state_dict(th.load('model.pth', map_location=th.device('cpu')))
 model.eval()
 
 # make a prediction with the model
-low_res_file = nc.Dataset('../archivos_prueba/750m_300m/prueba_2/VIIRS_NOAA20_AFAI_VIIRS_NOAA20_AFAI.nc')
-high_res_file = nc.Dataset('../archivos_prueba/750m_300m/prueba_2/MCI_OLCI_MCI_OLCI.nc')
+low_res_file = nc.Dataset('../archivos_prueba/750m_300m/prueba_5/VIIRS_NOAA20_AFAI_VIIRS_NOAA20_AFAI.nc')
+high_res_file = nc.Dataset('../archivos_prueba/750m_300m/prueba_5/MCI_OLCI_MCI_OLCI.nc')
 
 low_res_lat = low_res_file['lat'][:]
 low_res_lon = low_res_file['lon'][:]

@@ -10,8 +10,8 @@ model = SRCNN(in_channels=2)
 model.load_state_dict(th.load('model_v10.pth', map_location=th.device('cpu')))
 
 # make a prediction with the model
-low_res_file = nc.Dataset('../archivos_prueba/MODIS_AQUA_AFAI_MODIS_AQUA_AFAI.nc')
-high_res_file = nc.Dataset('../archivos_prueba/1km_300m/300m_malos/MCI_030.nc')
+low_res_file = nc.Dataset('../archivos_prueba/1km_300m/1km/AQUA_000.nc')
+high_res_file = nc.Dataset('../archivos_prueba/1km_300m/300m/MCI_000.nc')
 
 low_res_data, low_res_data_resized, high_res_data = Interpolate(low_res_file, high_res_file, 'afai', 'MCI').interpolate()
 

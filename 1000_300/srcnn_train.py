@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt
 import torch.cuda.amp as amp
 from test import TestModel
 
-aligner = ImageAligner('../archivos_prueba/1km_300m/1km/', '../archivos_prueba/1km_300m/300m/')
-aligner.align_images()
+"""aligner = ImageAligner('../archivos_prueba/1km_300m/1km/', '../archivos_prueba/1km_300m/300m/')
+aligner.align_images()"""
 
 # Load the data
-"""batch_size = 1
+batch_size = 1
 train_dataset = ChlorophyllDataset('../archivos_prueba/1km_300m/1km/', '../archivos_prueba/1km_300m/300m/aligned/')
 
 train_size = int(0.8 * len(train_dataset))
@@ -22,6 +22,12 @@ train_dataset, test_dataset = th.utils.data.random_split(train_dataset, [train_s
 train_loader = th.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = th.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
+device = th.device('cuda' if th.cuda.is_available() else 'cpu')
+model = SRCNN(in_channels=2)
+model.load_state_dict(th.load('model_v10.pth', map_location=th.device('cpu')))
+
+
+"""
 # Create the model
 device = th.device('cuda' if th.cuda.is_available() else 'cpu')
 model = SRCNN(in_channels=2).to(device)
@@ -55,12 +61,13 @@ plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.savefig('loss.png')
 plt.clf()
-
+"""
 
 # test the model
 model.eval()
 
-print(f'Average PSNR: {np.mean(TestModel(model, test_loader, device).test()):.4f}')
+print('Average PSNR: ', np.mean(TestModel(model, device).training_test(test_loader)[0]))
+print('Average SSIM: ', np.mean(TestModel(model, device).training_test(test_loader)[1]))
 
 # Save the model
-th.save(model.state_dict(), 'model.pth')"""
+th.save(model.state_dict(), 'model.pth')

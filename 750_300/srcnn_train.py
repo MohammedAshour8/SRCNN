@@ -7,7 +7,7 @@ from tqdm import tqdm
 from model import SRCNN
 import matplotlib.pyplot as plt
 import torch.cuda.amp as amp
-from skimage.metrics import peak_signal_noise_ratio
+from test import TestModel
 
 """aligner = ImageAligner('../archivos_prueba/750m_300m/750m/', '../archivos_prueba/750m_300m/300m/')
 aligner.align_images()"""
@@ -64,26 +64,7 @@ plt.clf()"""
 
 # test the model
 model.eval()
-psnr_scores = []
-with th.no_grad():
-    for (low_res, high_res) in test_loader:
-        low_res, high_res = low_res.to(device), high_res.to(device)
-        with amp.autocast():
-            outputs = model(low_res)
-        # Remove the extra channel dimension from outputs
-        outputs = outputs[:, 0, :, :]  # Select the first channel
-        # Squeeze the tensors to remove the batch_size dimension
-        outputs = outputs.squeeze(0)
-        high_res = high_res.squeeze(0)
-        print(outputs.shape)
-        print(high_res.shape)
-        # Calculate PSNR and SSIM
-        psnr = peak_signal_noise_ratio(high_res.cpu().numpy(), outputs.cpu().numpy(), data_range=1.0)
-        psnr_scores.append(psnr)
-        # Free up GPU memory
-        del low_res, high_res, outputs
-        th.cuda.empty_cache()
-
-print(f'Average PSNR: {np.mean(psnr_scores):.4f}')
+print('Average PSNR: ', np.mean(TestModel(model, device).training_test(test_loader)[0]))
+print('Average SSIM: ', np.mean(TestModel(model, device).training_test(test_loader)[1]))
 # save the model
 # th.save(model.state_dict(), 'model.pth')
