@@ -6,14 +6,27 @@ from tqdm import tqdm
 from model import SRCNN
 import matplotlib.pyplot as plt
 from skimage.metrics import peak_signal_noise_ratio
+import argparse
+
+parser = argparse.ArgumentParser(description='SRCNN Training')
+parser.add_argument('--batch_size', default=1, type=int, help='Batch size')
+parser.add_argument('--epochs', default=1000, type=int, help='Number of epochs')
+parser.add_argument('--lr', default=0.001, type=float, help='Learning rate')
+parser.add_argument('--in_channels', default=2, type=int, help='Number of input channels')
+parser.add_argument('--device', default='cuda', type=str, help='Device to use (cuda or cpu)')
+parser.add_argument('--save_model', default='model.pth', type=str, help='Path to save the trained model')
+parser.add_argument('--low_res_path', default='../archivos_prueba/1km_750m/1km/', type=str, help='Path to the low resolution images')
+parser.add_argument('--high_res_path', default='../archivos_prueba/1km_750m/750m/', type=str, help='Path to the high resolution images')
+
+args = parser.parse_args()
 
 # normalize afai values between 0 and 1
 def normalize(afai):
     return (afai - np.min(afai)) / (np.max(afai) - np.min(afai))
 
 # Load the data
-batch_size = 1
-train_dataset = ChlorophyllDataset('../archivos_prueba/1km_750m/1km/', '../archivos_prueba/1km_750m/750m/')
+batch_size = args.batch_size
+train_dataset = ChlorophyllDataset(args.low_res_path, args.high_res_path)
 
 train_size = int(0.8 * len(train_dataset))
 test_size = len(train_dataset) - train_size
@@ -22,20 +35,15 @@ train_dataset, test_dataset = th.utils.data.random_split(train_dataset, [train_s
 train_loader = th.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = th.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
-# train_loader = th.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-
-model = SRCNN(in_channels=2)
-model.load_state_dict(th.load('model.pth', map_location=th.device('cpu')))
-
 # Create the model
-"""model = SRCNN(in_channels=2)
-criterion = th.nn.MSELoss()
-optimizer = th.optim.Adam(model.parameters(), lr=0.001)
+model = SRCNN(in_channels=args.in_channels).to(args.device)
+criterion = th.nn.MSELoss().to(args.device)
+optimizer = th.optim.Adam(model.parameters(), lr=args.lr)
 
 model.train()
 
 # Train the model and store the loss to plot it later
-epochs = 1000
+epochs = args.epochs
 array_loss = []
 for epoch in tqdm(range(epochs)):
     for (low_res, high_res) in train_loader:
@@ -53,31 +61,7 @@ plt.plot(array_loss)
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.savefig('loss_1000_better.png')
-plt.clf()"""
-
-# test the model
-model.eval()
-psnr_scores = []
-with th.no_grad():
-    for (low_res, high_res) in test_loader:
-        low_res, high_res = low_res, high_res
-        outputs = model(low_res)
-        # Remove the extra channel dimension from outputs
-        outputs = outputs[:, 0, :, :]  # Select the first channel
-        high_res = high_res[:, 0, :, :]  # Select the first channel
-        # Squeeze the tensors to remove the batch_size dimension
-        outputs = outputs.squeeze(0)
-        high_res = high_res.squeeze(0)
-        print(outputs.shape)
-        print(high_res.shape)
-        # Calculate PSNR and SSIM
-        psnr = peak_signal_noise_ratio(high_res.cpu().numpy(), outputs.cpu().numpy(), data_range=1.0)
-        psnr_scores.append(psnr)
-        # Free up GPU memory
-        del low_res, high_res, outputs
-        th.cuda.empty_cache()
-
-print(f'Average PSNR: {np.mean(psnr_scores):.4f}')
+plt.clf()
 
 # save the model
-# th.save(model.state_dict(), 'SRCNN_1000_750_1000_better.pth)')
+th.save(model.state_dict(), args.save_model)

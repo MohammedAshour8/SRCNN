@@ -1,4 +1,3 @@
-import netCDF4 as nc
 import torch as th
 import numpy as np
 from chlorophyll_dataset import ChlorophyllDataset
@@ -8,6 +7,7 @@ from model import SRCNN
 import matplotlib.pyplot as plt
 import torch.cuda.amp as amp
 from test import TestModel
+from torch.utils.tensorboard import SummaryWriter
 
 """aligner = ImageAligner('../archivos_prueba/750m_300m/750m/', '../archivos_prueba/750m_300m/300m/')
 aligner.align_images()"""
@@ -28,7 +28,7 @@ model = SRCNN(in_channels=2).to(device)
 model.load_state_dict(th.load('model.pth', map_location=th.device('cpu')))
 
 # Create the model
-"""device = th.device('cuda' if th.cuda.is_available() else 'cpu')
+device = th.device('cuda' if th.cuda.is_available() else 'cpu')
 model = SRCNN(in_channels=2).to(device)
 criterion = th.nn.MSELoss().to(device)
 optimizer = th.optim.Adam(model.parameters(), lr=0.0001)
@@ -60,7 +60,7 @@ plt.plot(array_loss)
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.savefig('loss.png')
-plt.clf()"""
+plt.clf()
 
 # test the model
 model.eval()

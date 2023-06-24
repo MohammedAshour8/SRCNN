@@ -27,7 +27,6 @@ model = SRCNN(in_channels=2)
 model.load_state_dict(th.load('model_v10.pth', map_location=th.device('cpu')))
 
 
-"""
 # Create the model
 device = th.device('cuda' if th.cuda.is_available() else 'cpu')
 model = SRCNN(in_channels=2).to(device)
@@ -61,7 +60,7 @@ plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.savefig('loss.png')
 plt.clf()
-"""
+
 
 # test the model
 model.eval()
