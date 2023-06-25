@@ -1,11 +1,9 @@
-import netCDF4 as nc
 import torch as th
 import numpy as np
 from chlorophyll_dataset import ChlorophyllDataset
 from tqdm import tqdm
 from model import SRCNN
 import matplotlib.pyplot as plt
-from skimage.metrics import peak_signal_noise_ratio
 import argparse
 
 parser = argparse.ArgumentParser(description='SRCNN Training')
@@ -56,12 +54,6 @@ for epoch in tqdm(range(epochs)):
     # save the loss to plot it later
     array_loss.append(loss.item())
 
-# plot the loss
-plt.plot(array_loss)
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.savefig('loss_1000_better.png')
-plt.clf()
 
 # save the model
 th.save(model.state_dict(), args.save_model)
