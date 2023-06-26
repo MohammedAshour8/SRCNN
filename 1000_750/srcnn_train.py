@@ -3,7 +3,6 @@ import numpy as np
 from chlorophyll_dataset import ChlorophyllDataset
 from tqdm import tqdm
 from model import SRCNN
-import matplotlib.pyplot as plt
 import argparse
 
 parser = argparse.ArgumentParser(description='SRCNN Training')
