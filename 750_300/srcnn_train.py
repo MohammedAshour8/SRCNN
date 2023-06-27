@@ -9,8 +9,8 @@ import torch.cuda.amp as amp
 from test import TestModel
 from torch.utils.tensorboard import SummaryWriter
 
-"""aligner = ImageAligner('../archivos_prueba/750m_300m/750m/', '../archivos_prueba/750m_300m/300m/')
-aligner.align_images()"""
+aligner = ImageAligner('../archivos_prueba/750m_300m/750m/', '../archivos_prueba/750m_300m/300m/')
+aligner.align_images()
 
 # Load the data
 batch_size = 1
@@ -52,19 +52,6 @@ for epoch in tqdm(range(epochs)):
         # Free up GPU memory
         del low_res, high_res, outputs
         th.cuda.empty_cache()
-    array_loss.append(loss.item())  # move this line outside the with block
+    array_loss.append(loss.item())
 
-
-# plot the final loss
-plt.plot(array_loss)
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.savefig('loss.png')
-plt.clf()
-
-# test the model
-model.eval()
-print('Average PSNR: ', np.mean(TestModel(model, device).training_test(test_loader)[0]))
-print('Average SSIM: ', np.mean(TestModel(model, device).training_test(test_loader)[1]))
-# save the model
-# th.save(model.state_dict(), 'model.pth')
+th.save(model.state_dict(), 'model.pth')

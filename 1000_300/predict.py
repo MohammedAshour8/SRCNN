@@ -1,10 +1,10 @@
 import netCDF4 as nc
 import torch as th
-from torchvision.transforms import functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 from model import SRCNN
 import argparse
+from bicubic_interp_file import Interpolate
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--low_res_file', type=str, required=True)
@@ -33,12 +33,13 @@ low_res_lon, low_res_lat = np.meshgrid(low_res_lon, low_res_lat)
 low_res_data = low_res_file['afai'][:]
 low_res_data = np.nan_to_num(low_res_data, nan=0)
 
+low_res_data[low_res_data < -100] = 0
+
 low_res_data = th.from_numpy(low_res_data)
 
 _, low_res_lon, low_res_lat = low_res_data.shape
 
-low_res_data_resized = F.resize(low_res_data, (int(low_res_lon * 1000/300), int(low_res_lat * 1000/300)), interpolation=F.InterpolationMode.BICUBIC)
-low_res_data_resized = low_res_data_resized.numpy()
+low_res_data, low_res_data_resized, high_res_data = Interpolate(low_res_file, high_res_file, 'afai', 'MCI').interpolate()
 
 if high_res_file is not None:
     high_res_lat = high_res_file['lat'][:]
@@ -47,6 +48,8 @@ if high_res_file is not None:
 
     high_res_data = high_res_file['MCI'][:]
     high_res_data = np.nan_to_num(high_res_data, nan=0)
+
+    high_res_data[high_res_data < -100] = 0
 
     high_res_data = th.from_numpy(high_res_data)
     high_res_data = high_res_data.numpy()

@@ -33,6 +33,8 @@ low_res_lon, low_res_lat = np.meshgrid(low_res_lon, low_res_lat)
 low_res_data = low_res_file['afai'][:]
 low_res_data = np.nan_to_num(low_res_data, nan=0)
 
+low_res_data[low_res_data < -100] = 0
+
 low_res_data = th.from_numpy(low_res_data)
 
 _, low_res_lon, low_res_lat = low_res_data.shape
@@ -47,6 +49,8 @@ if high_res_file is not None:
 
     high_res_data = high_res_file['MCI'][:]
     high_res_data = np.nan_to_num(high_res_data, nan=0)
+
+    high_res_data[high_res_data < -100] = 0
 
     high_res_data = th.from_numpy(high_res_data)
     high_res_data = high_res_data.numpy()

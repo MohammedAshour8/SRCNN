@@ -3,7 +3,6 @@ import torch as th
 import matplotlib.pyplot as plt
 from model import SRCNN
 from bicubic_interp_file import Interpolate
-from image_aligner import ImageAligner
 import numpy as np
 
 
@@ -83,8 +82,6 @@ def plot_histogram(i):
 device = th.device('cuda' if th.cuda.is_available() else 'cpu')
 model = SRCNN(in_channels=2)
 model.load_state_dict(th.load('model_v10.pth', map_location=th.device('cpu')))
-
-
 
 for i in range(1, 4):
     plot_histogram(i)
