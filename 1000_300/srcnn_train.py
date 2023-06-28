@@ -8,7 +8,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='SRCNN Training')
 parser.add_argument('--batch_size', default=1, type=int, help='Batch size')
-parser.add_argument('--epochs', default=1000, type=int, help='Number of epochs')
+parser.add_argument('--epochs', default=1200, type=int, help='Number of epochs')
 parser.add_argument('--lr', default=0.0001, type=float, help='Learning rate')
 parser.add_argument('--in_channels', default=2, type=int, help='Number of input channels')
 parser.add_argument('--device', default='cuda', type=str, help='Device to use (cuda or cpu)')

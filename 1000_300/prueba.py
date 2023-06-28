@@ -39,8 +39,6 @@ def save_images(low_res_data, prediction, high_res_data):
 def plot_histogram(i):
     low_res_file = nc.Dataset('../archivos_prueba/1km_300m/prueba_' + str(i) + '/MODIS_AQUA_AFAI_MODIS_AQUA_AFAI.nc')
     high_res_file = nc.Dataset('../archivos_prueba/1km_300m/prueba_' + str(i) + '/MCI_OLCI_MCI_OLCI.nc')
-    #low_res_file = nc.Dataset('../archivos_prueba/1km_300m/1km_malos/AQUA_032.nc')
-    #high_res_file = nc.Dataset('../archivos_prueba/1km_300m/300m_malos/MCI_032.nc')
 
     low_res_data, low_res_data_resized, high_res_data = Interpolate(low_res_file, high_res_file, 'afai', 'MCI').interpolate()
 

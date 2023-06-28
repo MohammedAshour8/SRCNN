@@ -30,6 +30,7 @@ class Interpolate():
             low_res_data_resized = F.resize(low_res_data, (high_res_data.shape[0], high_res_data.shape[1]), interpolation=F.InterpolationMode.BICUBIC)
         else:
             low_res_data_resized = F.resize(low_res_data, (high_res_data.shape[1], high_res_data.shape[2]), interpolation=F.InterpolationMode.BICUBIC)
+            
         low_res_data = low_res_data.numpy()
         low_res_data_resized = low_res_data_resized.numpy()
         high_res_data = high_res_data.numpy()

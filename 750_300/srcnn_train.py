@@ -1,20 +1,29 @@
 import torch as th
-import numpy as np
 from chlorophyll_dataset import ChlorophyllDataset
 from image_aligner import ImageAligner
 from tqdm import tqdm
 from model import SRCNN
-import matplotlib.pyplot as plt
 import torch.cuda.amp as amp
-from test import TestModel
-from torch.utils.tensorboard import SummaryWriter
+import argparse
 
-aligner = ImageAligner('../archivos_prueba/750m_300m/750m/', '../archivos_prueba/750m_300m/300m/')
+parser = argparse.ArgumentParser(description='SRCNN Training')
+parser.add_argument('--batch_size', default=1, type=int, help='Batch size')
+parser.add_argument('--epochs', default=850, type=int, help='Number of epochs')
+parser.add_argument('--lr', default=0.0001, type=float, help='Learning rate')
+parser.add_argument('--in_channels', default=2, type=int, help='Number of input channels')
+parser.add_argument('--device', default='cuda', type=str, help='Device to use (cuda or cpu)')
+parser.add_argument('--save_model', default='model.pth', type=str, help='Path to save the trained model')
+parser.add_argument('--low_res_path', default='../archivos_prueba/750m_300m/750m/', type=str, help='Path to the low resolution images')
+parser.add_argument('--high_res_path', default='../archivos_prueba/750m_300m/300m/', type=str, help='Path to the high resolution images')
+
+args = parser.parse_args()
+
+aligner = ImageAligner(args.low_res_path, args.high_res_path)
 aligner.align_images()
 
 # Load the data
-batch_size = 1
-train_dataset = ChlorophyllDataset('../archivos_prueba/750m_300m/750m/', '../archivos_prueba/750m_300m/300m/aligned/')
+batch_size = args.batch_size
+train_dataset = ChlorophyllDataset(args.low_res_path, args.high_res_path)
 
 train_size = int(0.8 * len(train_dataset))
 test_size = len(train_dataset) - train_size
@@ -23,20 +32,17 @@ train_dataset, test_dataset = th.utils.data.random_split(train_dataset, [train_s
 train_loader = th.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = th.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
-device = th.device('cuda' if th.cuda.is_available() else 'cpu')
-model = SRCNN(in_channels=2).to(device)
-model.load_state_dict(th.load('model.pth', map_location=th.device('cpu')))
 
 # Create the model
-device = th.device('cuda' if th.cuda.is_available() else 'cpu')
-model = SRCNN(in_channels=2).to(device)
+device = th.device(args.device if th.cuda.is_available() else 'cpu')
+model = SRCNN(in_channels=args.in_channels).to(device)
 criterion = th.nn.MSELoss().to(device)
-optimizer = th.optim.Adam(model.parameters(), lr=0.0001)
+optimizer = th.optim.Adam(model.parameters(), lr=args.lr)
 
 model.train()
 
 # Train the model for 10 epochs
-epochs = 1200
+epochs = args.epochs
 array_loss = []
 scaler = amp.GradScaler()
 for epoch in tqdm(range(epochs)):
@@ -54,4 +60,6 @@ for epoch in tqdm(range(epochs)):
         th.cuda.empty_cache()
     array_loss.append(loss.item())
 
-th.save(model.state_dict(), 'model.pth')
+
+# Save the model
+th.save(model.state_dict(), args.save_model)
